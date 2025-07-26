@@ -488,6 +488,20 @@
 </head>
 <body>
 
+  <!-- 🎵 Background Sci-Fi Sound -->
+  <audio id="bg-sound" autoplay loop>
+    <source src="Resources/morphed-metal-discharged-cinematic-trailer-sound-effects-124763.mp3" type="audio/mpeg" />
+    Your browser does not support the audio element.
+  </audio>
+
+  <!-- Background sound control button -->
+  <button id="sound-toggle" aria-label="Toggle background sound" title="Toggle Background Sound" 
+          style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; 
+                 background: var(--accent-color); border: none; border-radius: 50%; 
+                 width: 48px; height: 48px; cursor: pointer; color: white; font-size: 24px;">
+    🔊
+  </button>
+
   <!-- Left Vertical Scroll Bar -->
   <div class="scroll-bar-vertical" aria-label="Page scroll progress" role="progressbar" tabindex="0">
     <div class="scroll-thumb"></div>
@@ -694,77 +708,68 @@
     <h2>Contact Us</h2>
     <form class="contact-form" action="mailto:armano.international@gmail.com" method="post" enctype="text/plain">
       <input type="text" name="name" placeholder="Full Name" required aria-required="true" />
-      <input type="email" name="email" placeholder="Email Address" required aria-required="true" />
-      <textarea name="message" rows="5" placeholder="Your message" required aria-required="true"></textarea>
+      <input type="email" name="email" placeholder="Email" required aria-required="true" />
+      <textarea name="message" rows="5" placeholder="Message" required aria-required="true"></textarea>
       <button type="submit">Send Message</button>
     </form>
   </section>
 
+  <!-- Footer -->
   <footer>
-    &copy; 2025 True Logic. All rights reserved.
+    &copy; 2025 True Logic - Software Solutions. All rights reserved.
   </footer>
 
 <script>
+  // Scroll Bar Functionality
+  const scrollBar = document.querySelector('.scroll-bar-vertical');
+  const scrollThumb = scrollBar.querySelector('.scroll-thumb');
+  const scrollPercentText = scrollBar.querySelector('.scroll-percentage');
+
+  function updateScroll() {
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const scrollPercent = docHeight ? (scrollTop / docHeight) * 100 : 0;
+    scrollThumb.style.height = '60px'; // fixed height
+    scrollThumb.style.top = (scrollPercent * (window.innerHeight - 60) / 100) + 'px';
+    scrollPercentText.textContent = Math.round(scrollPercent) + '%';
+  }
+  window.addEventListener('scroll', updateScroll);
+  window.addEventListener('resize', updateScroll);
+  updateScroll();
+
   // Theme toggle
   const themeToggleBtn = document.getElementById('theme-toggle');
   const body = document.body;
-  const nav = document.querySelector('nav');
+  const nav = document.getElementById('main-nav');
   const themeIcon = document.getElementById('theme-icon');
-
-  function setTheme(dark) {
-    if (dark) {
-      body.classList.add('dark');
-      nav.classList.add('dark');
-      themeToggleBtn.setAttribute('aria-pressed', 'true');
-      // Sun icon for dark mode
-      themeIcon.innerHTML = '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
-    } else {
-      body.classList.remove('dark');
-      nav.classList.remove('dark');
-      themeToggleBtn.setAttribute('aria-pressed', 'false');
-      // Moon icon for light mode
-      themeIcon.innerHTML = '<path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>';
-    }
-  }
-
-  // Initialize theme from localStorage or default light
-  const savedTheme = localStorage.getItem('trueLogicTheme') === 'dark';
-  setTheme(savedTheme);
+  let darkMode = false;
 
   themeToggleBtn.addEventListener('click', () => {
-    const isDark = body.classList.contains('dark');
-    setTheme(!isDark);
-    localStorage.setItem('trueLogicTheme', !isDark ? 'dark' : 'light');
+    darkMode = !darkMode;
+    body.classList.toggle('dark', darkMode);
+    nav.classList.toggle('dark', darkMode);
+    themeToggleBtn.setAttribute('aria-pressed', darkMode.toString());
+    if (darkMode) {
+      themeIcon.innerHTML = '<circle cx="12" cy="12" r="5" /><path d="M12 1v2"/><path d="M12 21v2"/><path d="M4.22 4.22l1.42 1.42"/><path d="M18.36 18.36l1.42 1.42"/><path d="M1 12h2"/><path d="M21 12h2"/><path d="M4.22 19.78l1.42-1.42"/><path d="M18.36 5.64l1.42-1.42"/>';
+    } else {
+      themeIcon.innerHTML = '<path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>';
+    }
   });
 
   // Accent color dropdown
   const accentBtn = document.getElementById('accent-btn');
   const accentMenu = document.getElementById('accent-menu');
-  let accentOpen = false;
-
   accentBtn.addEventListener('click', () => {
-    accentOpen = !accentOpen;
-    accentMenu.style.display = accentOpen ? 'flex' : 'none';
-    accentBtn.setAttribute('aria-expanded', accentOpen);
-    if (accentOpen) accentMenu.focus();
+    const expanded = accentBtn.getAttribute('aria-expanded') === 'true';
+    accentBtn.setAttribute('aria-expanded', !expanded);
+    accentMenu.style.display = expanded ? 'none' : 'flex';
   });
-
-  // Close dropdown on click outside
-  document.addEventListener('click', e => {
-    if (!accentBtn.contains(e.target) && !accentMenu.contains(e.target)) {
-      accentMenu.style.display = 'none';
-      accentOpen = false;
-      accentBtn.setAttribute('aria-expanded', 'false');
-    }
-  });
-
-  // Handle accent color change
   accentMenu.querySelectorAll('.accent-circle').forEach(circle => {
     circle.addEventListener('click', () => {
-      const newColor = circle.dataset.color;
-      updateAccentColor(newColor);
+      const color = circle.getAttribute('data-color');
+      document.documentElement.style.setProperty('--accent-color', color);
+      document.documentElement.style.setProperty('--accent-gradient', `linear-gradient(45deg, ${color}, #10b981)`);
       accentMenu.style.display = 'none';
-      accentOpen = false;
       accentBtn.setAttribute('aria-expanded', 'false');
     });
     circle.addEventListener('keydown', e => {
@@ -775,64 +780,34 @@
     });
   });
 
-  function updateAccentColor(color) {
-    document.documentElement.style.setProperty('--accent-color', color);
+  // Background sound control
+  const bgSound = document.getElementById('bg-sound');
+  const soundToggleBtn = document.getElementById('sound-toggle');
+  let isPlaying = true;
 
-    // Update gradient based on new accent color (simple 2-color gradient)
-    const grad = `linear-gradient(45deg, ${color}, #10b981)`;
-    document.documentElement.style.setProperty('--accent-gradient', grad);
-  }
-
-  // Scroll bar progress logic
-  const scrollBar = document.querySelector('.scroll-bar-vertical');
-  const scrollThumb = scrollBar.querySelector('.scroll-thumb');
-  const scrollPercentage = scrollBar.querySelector('.scroll-percentage');
-
-  function updateScroll() {
-    const scrollTop = window.scrollY;
-    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-    const scrolled = (scrollTop / docHeight) * 100;
-    const maxThumbTop = window.innerHeight - scrollThumb.offsetHeight;
-
-    scrollThumb.style.transform = `translateY(${(scrolled / 100) * maxThumbTop}px)`;
-    scrollPercentage.textContent = `${Math.round(scrolled)}%`;
-  }
-
-  window.addEventListener('scroll', updateScroll);
-  window.addEventListener('resize', updateScroll);
-  updateScroll();
-
-  // Accessibility: keyboard navigation for accent dropdown
-  accentBtn.addEventListener('keydown', e => {
-    if(e.key === 'ArrowDown' && !accentOpen) {
-      e.preventDefault();
-      accentMenu.style.display = 'flex';
-      accentOpen = true;
-      accentBtn.setAttribute('aria-expanded', 'true');
-      accentMenu.querySelector('.accent-circle').focus();
+  soundToggleBtn.addEventListener('click', () => {
+    if (isPlaying) {
+      bgSound.pause();
+      soundToggleBtn.textContent = '🔈'; // muted icon
+      soundToggleBtn.setAttribute('aria-label', 'Unmute background sound');
+      soundToggleBtn.setAttribute('title', 'Unmute Background Sound');
+    } else {
+      bgSound.play();
+      soundToggleBtn.textContent = '🔊'; // volume icon
+      soundToggleBtn.setAttribute('aria-label', 'Mute background sound');
+      soundToggleBtn.setAttribute('title', 'Mute Background Sound');
     }
+    isPlaying = !isPlaying;
   });
 
-  accentMenu.addEventListener('keydown', e => {
-    const circles = [...accentMenu.querySelectorAll('.accent-circle')];
-    let index = circles.indexOf(document.activeElement);
-
-    if(e.key === 'ArrowDown') {
-      e.preventDefault();
-      index = (index + 1) % circles.length;
-      circles[index].focus();
-    } else if(e.key === 'ArrowUp') {
-      e.preventDefault();
-      index = (index - 1 + circles.length) % circles.length;
-      circles[index].focus();
-    } else if(e.key === 'Escape') {
+  // Accessibility: close accent menu on outside click
+  document.addEventListener('click', (e) => {
+    if (!accentBtn.contains(e.target) && !accentMenu.contains(e.target)) {
       accentMenu.style.display = 'none';
-      accentOpen = false;
       accentBtn.setAttribute('aria-expanded', 'false');
-      accentBtn.focus();
     }
   });
-
 </script>
+
 </body>
 </html>
