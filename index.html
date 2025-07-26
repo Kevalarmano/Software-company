@@ -163,6 +163,8 @@
     padding: 8px;
     gap: 8px;
     display: flex;
+    flex-wrap: wrap;
+    width: 180px;
   }
   nav.dark .accent-menu {
     background: var(--background-dark);
@@ -174,6 +176,7 @@
     cursor: pointer;
     border: 2px solid transparent;
     transition: border-color 0.3s;
+    flex-shrink: 0;
   }
   .accent-circle:focus,
   .accent-circle:hover {
@@ -208,18 +211,16 @@
     font-weight: 900;
     letter-spacing: 2px;
     margin: 0;
-    color: var(--accent-color);
-    text-shadow:
-      0 0 8px var(--accent-color),
-      0 0 20px var(--accent-color),
-      0 0 30px var(--accent-color),
-      0 0 40px var(--accent-color);
+    background: linear-gradient(90deg, var(--accent-color), #10b981);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    position: relative;
+    text-transform: uppercase;
   }
-  .hero span {
-    color: white;
-    text-shadow:
-      0 0 6px #fff,
-      0 0 12px #fff;
+  .hero h1 span {
+    background: linear-gradient(90deg, #10b981, var(--accent-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
   .hero p {
     font-size: 1.5rem;
@@ -238,7 +239,6 @@
     font-weight: 600;
     font-size: 1.3rem;
     color: var(--accent-color);
-    text-shadow: 0 0 8px var(--accent-color);
   }
 
   /* Buttons */
@@ -519,6 +519,9 @@
           <span tabindex="0" class="accent-circle" data-color="#ef4444" style="background:#ef4444" aria-label="Red accent color"></span>
           <span tabindex="0" class="accent-circle" data-color="#f59e0b" style="background:#f59e0b" aria-label="Yellow accent color"></span>
           <span tabindex="0" class="accent-circle" data-color="#8b5cf6" style="background:#8b5cf6" aria-label="Purple accent color"></span>
+          <span tabindex="0" class="accent-circle" data-color="#ec4899" style="background:#ec4899" aria-label="Pink accent color"></span>
+          <span tabindex="0" class="accent-circle" data-color="#14b8a6" style="background:#14b8a6" aria-label="Teal accent color"></span>
+          <span tabindex="0" class="accent-circle" data-color="#f97316" style="background:#f97316" aria-label="Orange accent color"></span>
         </div>
       </div>
 
@@ -724,89 +727,112 @@
     }
   }
 
+  // Initialize theme from localStorage or default light
+  const savedTheme = localStorage.getItem('trueLogicTheme') === 'dark';
+  setTheme(savedTheme);
+
   themeToggleBtn.addEventListener('click', () => {
-    setTheme(!body.classList.contains('dark'));
+    const isDark = body.classList.contains('dark');
+    setTheme(!isDark);
+    localStorage.setItem('trueLogicTheme', !isDark ? 'dark' : 'light');
   });
 
   // Accent color dropdown
   const accentBtn = document.getElementById('accent-btn');
   const accentMenu = document.getElementById('accent-menu');
-  let accentMenuOpen = false;
+  let accentOpen = false;
 
   accentBtn.addEventListener('click', () => {
-    accentMenuOpen = !accentMenuOpen;
-    accentMenu.style.display = accentMenuOpen ? 'flex' : 'none';
-    accentBtn.setAttribute('aria-expanded', accentMenuOpen.toString());
+    accentOpen = !accentOpen;
+    accentMenu.style.display = accentOpen ? 'flex' : 'none';
+    accentBtn.setAttribute('aria-expanded', accentOpen);
+    if (accentOpen) accentMenu.focus();
   });
 
-  // Close menu when clicking outside
+  // Close dropdown on click outside
   document.addEventListener('click', e => {
     if (!accentBtn.contains(e.target) && !accentMenu.contains(e.target)) {
       accentMenu.style.display = 'none';
-      accentMenuOpen = false;
+      accentOpen = false;
       accentBtn.setAttribute('aria-expanded', 'false');
     }
   });
 
-  // Accent color selection
-  document.querySelectorAll('.accent-circle').forEach(circle => {
-    circle.addEventListener('click', e => {
-      const color = e.target.dataset.color;
-      if (color) {
-        document.documentElement.style.setProperty('--accent-color', color);
-        document.documentElement.style.setProperty('--accent-gradient', `linear-gradient(45deg, ${color}, #10b981)`);
-      }
+  // Handle accent color change
+  accentMenu.querySelectorAll('.accent-circle').forEach(circle => {
+    circle.addEventListener('click', () => {
+      const newColor = circle.dataset.color;
+      updateAccentColor(newColor);
       accentMenu.style.display = 'none';
-      accentMenuOpen = false;
+      accentOpen = false;
       accentBtn.setAttribute('aria-expanded', 'false');
+    });
+    circle.addEventListener('keydown', e => {
+      if(e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        circle.click();
+      }
     });
   });
 
-  // Vertical scroll bar functionality
-  const scrollBar = document.querySelector('.scroll-bar-vertical');
-  const scrollThumb = scrollBar.querySelector('.scroll-thumb');
-  const scrollPercentLabel = scrollBar.querySelector('.scroll-percentage');
+  function updateAccentColor(color) {
+    document.documentElement.style.setProperty('--accent-color', color);
 
-  function updateScrollThumb() {
-    const scrollTop = window.scrollY || window.pageYOffset;
-    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-    const scrollPercent = docHeight ? (scrollTop / docHeight) : 0;
-    const thumbMaxY = scrollBar.clientHeight - scrollThumb.clientHeight;
-    scrollThumb.style.transform = `translateY(${scrollPercent * thumbMaxY}px)`;
-    scrollPercentLabel.textContent = `${Math.round(scrollPercent * 100)}%`;
+    // Update gradient based on new accent color (simple 2-color gradient)
+    const grad = `linear-gradient(45deg, ${color}, #10b981)`;
+    document.documentElement.style.setProperty('--accent-gradient', grad);
   }
 
-  updateScrollThumb();
+  // Scroll bar progress logic
+  const scrollBar = document.querySelector('.scroll-bar-vertical');
+  const scrollThumb = scrollBar.querySelector('.scroll-thumb');
+  const scrollPercentage = scrollBar.querySelector('.scroll-percentage');
 
-  window.addEventListener('scroll', updateScrollThumb);
-
-  // Drag scroll thumb
-  let isDragging = false;
-  let startY = 0;
-  let startScroll = 0;
-
-  scrollThumb.addEventListener('mousedown', e => {
-    isDragging = true;
-    startY = e.clientY;
-    startScroll = window.scrollY || window.pageYOffset;
-    document.body.style.userSelect = 'none';
-  });
-
-  window.addEventListener('mouseup', () => {
-    isDragging = false;
-    document.body.style.userSelect = '';
-  });
-
-  window.addEventListener('mousemove', e => {
-    if (!isDragging) return;
-    e.preventDefault();
-    const deltaY = e.clientY - startY;
+  function updateScroll() {
+    const scrollTop = window.scrollY;
     const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-    const scrollBarHeight = scrollBar.clientHeight - scrollThumb.clientHeight;
-    const scrollRatio = deltaY / scrollBarHeight;
-    window.scrollTo(0, startScroll + scrollRatio * docHeight);
-  });
-</script>
+    const scrolled = (scrollTop / docHeight) * 100;
+    const maxThumbTop = window.innerHeight - scrollThumb.offsetHeight;
 
+    scrollThumb.style.transform = `translateY(${(scrolled / 100) * maxThumbTop}px)`;
+    scrollPercentage.textContent = `${Math.round(scrolled)}%`;
+  }
+
+  window.addEventListener('scroll', updateScroll);
+  window.addEventListener('resize', updateScroll);
+  updateScroll();
+
+  // Accessibility: keyboard navigation for accent dropdown
+  accentBtn.addEventListener('keydown', e => {
+    if(e.key === 'ArrowDown' && !accentOpen) {
+      e.preventDefault();
+      accentMenu.style.display = 'flex';
+      accentOpen = true;
+      accentBtn.setAttribute('aria-expanded', 'true');
+      accentMenu.querySelector('.accent-circle').focus();
+    }
+  });
+
+  accentMenu.addEventListener('keydown', e => {
+    const circles = [...accentMenu.querySelectorAll('.accent-circle')];
+    let index = circles.indexOf(document.activeElement);
+
+    if(e.key === 'ArrowDown') {
+      e.preventDefault();
+      index = (index + 1) % circles.length;
+      circles[index].focus();
+    } else if(e.key === 'ArrowUp') {
+      e.preventDefault();
+      index = (index - 1 + circles.length) % circles.length;
+      circles[index].focus();
+    } else if(e.key === 'Escape') {
+      accentMenu.style.display = 'none';
+      accentOpen = false;
+      accentBtn.setAttribute('aria-expanded', 'false');
+      accentBtn.focus();
+    }
+  });
+
+</script>
 </body>
 </html>
